@@ -318,3 +318,18 @@ section + section { margin-top: 28px; }
 }
 .fuss { border-top: 3px solid var(--gelb); }
 :focus-visible { outline-color: var(--gelb); }
+
+/* ---------- Mannschaftsfoto auf der Startseite ---------- */
+.teamfoto { position: relative; margin: 0; background: var(--gruen-tief); }
+.teamfoto img {
+  width: 100%; height: auto; aspect-ratio: 3 / 2; object-fit: cover; object-position: 50% 60%;
+}
+.teamfoto::after { /* weicher Übergang ins Grün darunter */
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 28%;
+  background: linear-gradient(to bottom, transparent, var(--gruen));
+  pointer-events: none;
+}
+.teamfoto + .hero { padding-top: 18px; }
+@media (min-width: 640px) {
+  .teamfoto img { aspect-ratio: auto; height: min(52vh, 480px); }
+}
