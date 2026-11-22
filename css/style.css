@@ -296,3 +296,40 @@ section + section { margin-top: 28px; }
 .spielort { display: flex; gap: 8px; align-items: flex-start; justify-content: center; text-align: left; color: var(--text-leise); font-size: .9rem; margin: 10px 0 0; }
 .spielort svg { width: 18px; height: 18px; flex: none; margin-top: 2px; color: var(--gruen); }
 .bilanz-hinweis { grid-column: 1 / -1; margin: 10px 0 0; font-size: .8rem; color: var(--text-leise); text-align: center; }
+
+/* ---------- Gelbe Akzente aus dem Vereinslogo (sparsam, nur Schmuck) ---------- */
+:root { --gelb: #f1d009; }
+.kopf { border-bottom: 3px solid var(--gelb); }
+.hero h1::after, .seitenkopf h1::after {
+  content: ""; display: block; width: 44px; height: 4px; margin-top: 10px;
+  background: var(--gelb); border-radius: 2px;
+}
+.nav a[aria-current="page"] { position: relative; }
+.nav a[aria-current="page"]::before {
+  content: ""; position: absolute; top: 0; left: 30%; right: 30%; height: 3px;
+  background: var(--gelb); border-radius: 0 0 3px 3px;
+}
+@media (min-width: 820px) {
+  .nav a[aria-current="page"]::before { top: auto; bottom: -2px; left: 12px; right: 12px; border-radius: 3px; }
+}
+.etikett::before {
+  content: ""; display: inline-block; width: 8px; height: 8px; margin-right: 7px;
+  background: var(--gelb); border-radius: 2px; vertical-align: 1px;
+}
+.fuss { border-top: 3px solid var(--gelb); }
+:focus-visible { outline-color: var(--gelb); }
+
+/* ---------- Mannschaftsfoto auf der Startseite ---------- */
+.teamfoto { position: relative; margin: 0; background: var(--gruen-tief); }
+.teamfoto img {
+  width: 100%; height: auto; aspect-ratio: 3 / 2; object-fit: cover; object-position: 50% 60%;
+}
+.teamfoto::after { /* weicher Übergang ins Grün darunter */
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 28%;
+  background: linear-gradient(to bottom, transparent, var(--gruen));
+  pointer-events: none;
+}
+.teamfoto + .hero { padding-top: 18px; }
+@media (min-width: 640px) {
+  .teamfoto img { aspect-ratio: auto; height: min(52vh, 480px); }
+}
