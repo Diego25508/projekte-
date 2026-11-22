@@ -1,0 +1,59 @@
+{
+  "saison": "2026/27",
+  "spiele": [
+    {
+      "datum": "2026-08-23",
+      "uhrzeit": "15:00",
+      "gegner": "PLATZHALTER Gegner 1",
+      "heim": true,
+      "wettbewerb": "Kreisliga",
+      "ergebnis": "3:1",
+      "fotos": "https://drive.google.com/drive/folders/PLATZHALTER"
+    },
+    {
+      "datum": "2026-08-30",
+      "uhrzeit": "15:00",
+      "gegner": "PLATZHALTER Gegner 2",
+      "heim": false,
+      "wettbewerb": "Kreisliga",
+      "ergebnis": "1:1",
+      "fotos": "https://drive.google.com/drive/folders/PLATZHALTER"
+    },
+    {
+      "datum": "2026-09-06",
+      "uhrzeit": "15:00",
+      "gegner": "PLATZHALTER Gegner 3",
+      "heim": true,
+      "wettbewerb": "Kreispokal",
+      "ergebnis": "4:2",
+      "fotos": ""
+    },
+    {
+      "datum": "2026-11-15",
+      "uhrzeit": "14:00",
+      "gegner": "PLATZHALTER Gegner 4",
+      "heim": false,
+      "wettbewerb": "Kreisliga",
+      "ergebnis": "0:2",
+      "fotos": "https://drive.google.com/drive/folders/PLATZHALTER"
+    },
+    {
+      "datum": "2026-11-29",
+      "uhrzeit": "14:00",
+      "gegner": "PLATZHALTER Gegner 5",
+      "heim": true,
+      "wettbewerb": "Kreisliga",
+      "ergebnis": "",
+      "fotos": ""
+    },
+    {
+      "datum": "2026-12-06",
+      "uhrzeit": "13:30",
+      "gegner": "PLATZHALTER Gegner 6",
+      "heim": false,
+      "wettbewerb": "Kreisliga",
+      "ergebnis": "",
+      "fotos": ""
+    }
+  ]
+}

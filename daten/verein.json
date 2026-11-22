@@ -1,0 +1,35 @@
+{
+  "kontakt": {
+    "ansprechpartner": "PLATZHALTER Vorname Nachname",
+    "funktion": "Abteilungsleiter Fußball",
+    "email": "PLATZHALTER@beispiel.de",
+    "telefon": "PLATZHALTER 0123 456789",
+    "vereinsadresse": "PLATZHALTER Straße 1, 39307 Genthin",
+    "sportplatz": "PLATZHALTER Sportplatz, Straße 1, 39307 Genthin",
+    "training": [
+      { "tag": "Dienstag", "zeit": "PLATZHALTER 18:30 – 20:00 Uhr" },
+      { "tag": "Donnerstag", "zeit": "PLATZHALTER 18:30 – 20:00 Uhr" }
+    ],
+    "instagram": "",
+    "facebook": "",
+    "fussballde": ""
+  },
+  "trainer": [
+    { "name": "PLATZHALTER Trainer", "rolle": "Cheftrainer", "foto": "" },
+    { "name": "PLATZHALTER Co-Trainer", "rolle": "Co-Trainer", "foto": "" }
+  ],
+  "spieler": [
+    { "nummer": 1, "name": "PLATZHALTER Spieler", "position": "Tor", "foto": "" },
+    { "nummer": 12, "name": "PLATZHALTER Spieler", "position": "Tor", "foto": "" },
+    { "nummer": 2, "name": "PLATZHALTER Spieler", "position": "Abwehr", "foto": "" },
+    { "nummer": 3, "name": "PLATZHALTER Spieler", "position": "Abwehr", "foto": "" },
+    { "nummer": 4, "name": "PLATZHALTER Spieler", "position": "Abwehr", "foto": "" },
+    { "nummer": 5, "name": "PLATZHALTER Spieler", "position": "Abwehr", "foto": "" },
+    { "nummer": 6, "name": "PLATZHALTER Spieler", "position": "Mittelfeld", "foto": "" },
+    { "nummer": 8, "name": "PLATZHALTER Spieler", "position": "Mittelfeld", "foto": "" },
+    { "nummer": 10, "name": "PLATZHALTER Spieler", "position": "Mittelfeld", "foto": "" },
+    { "nummer": 7, "name": "PLATZHALTER Spieler", "position": "Sturm", "foto": "" },
+    { "nummer": 9, "name": "PLATZHALTER Spieler", "position": "Sturm", "foto": "" },
+    { "nummer": 11, "name": "PLATZHALTER Spieler", "position": "Sturm", "foto": "" }
+  ]
+}

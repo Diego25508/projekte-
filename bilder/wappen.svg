@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 116" role="img" aria-label="Platzhalter-Wappen SV Fortuna Genthin">
+  <path d="M50 3 L95 15 V55 C95 85 74 104 50 113 C26 104 5 85 5 55 V15 Z" fill="#0a7a3f" stroke="#ffffff" stroke-width="5"/>
+  <path d="M50 14 L84 23 V55 C84 78 69 93 50 101 Z" fill="#ffffff" opacity=".18"/>
+  <text x="50" y="62" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="800" font-size="30" fill="#ffffff">SVF</text>
+  <text x="50" y="82" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="11" fill="#ffffff" letter-spacing="1">GENTHIN</text>
+</svg>
