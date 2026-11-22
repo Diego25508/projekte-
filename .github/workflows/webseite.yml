@@ -1,0 +1,78 @@
+name: Spiele aktualisieren & Webseite veröffentlichen
+
+on:
+  # Spielwochenende: Sa/So 12–21 Uhr (deutsche Zeit) jede Stunde
+  schedule:
+    - cron: "17 10-20 * * 6,0"
+  # sonst zweimal täglich (Verlegungen, neue Termine)
+    - cron: "43 5,16 * * *"
+  # bei jeder Änderung an main (z. B. neuer Drive-Link vom Handy)
+  push:
+    branches: [main]
+  # Knopf "Run workflow" unter Actions
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: webseite
+  cancel-in-progress: false
+
+jobs:
+  aktualisieren:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Abhängigkeiten installieren
+        run: pip install -r scripts/requirements.txt
+
+      - name: Spiele von fussball.de holen
+        run: python scripts/fussballde_abruf.py
+
+      - name: Änderungen speichern
+        run: |
+          if git diff --quiet -- daten/spiele.json; then
+            echo "Keine neuen Daten."
+            exit 0
+          fi
+          git config user.name "fussball.de-Abruf"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add daten/spiele.json
+          git commit -m "Spiele von fussball.de aktualisiert"
+          # Falls in der Zwischenzeit jemand etwas geändert hat
+          for i in 1 2 3; do
+            git pull --rebase origin main && git push origin HEAD:main && exit 0
+            sleep 10
+          done
+          exit 1
+
+  veroeffentlichen:
+    needs: aktualisieren
+    if: always()
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+
+      - id: deployment
+        uses: actions/deploy-pages@v4

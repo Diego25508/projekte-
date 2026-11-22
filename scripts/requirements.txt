@@ -1,0 +1,2 @@
+beautifulsoup4==4.12.3
+fonttools==4.53.1

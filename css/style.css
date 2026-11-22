@@ -2,7 +2,7 @@
 :root {
   --gruen: #0a7a3f;
   --gruen-dunkel: #05542a;
-  --gruen-tief: #033a1d;
+  --gruen-tief: #0c4620;
   --gruen-hell: #e8f5ee;
   --weiss: #ffffff;
   --text: #15241b;
@@ -54,7 +54,8 @@ h3 { font-size: 1.05rem; }
 }
 .kopf .container { display: flex; align-items: center; gap: 12px; min-height: 60px; }
 .marke { display: flex; align-items: center; gap: 10px; color: inherit; text-decoration: none; }
-.marke img { width: 36px; height: auto; }
+.marke .logo-schild { flex: none; width: 40px; height: 46px; background: var(--weiss); border-radius: 9px; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 3px rgba(0,0,0,.25); }
+.marke .logo-schild img { width: 27px; height: 40px; }
 .marke strong { display: block; font-size: 1.05rem; letter-spacing: .2px; }
 .marke small { display: block; font-size: .75rem; opacity: .8; }
 
@@ -279,3 +280,19 @@ section + section { margin-top: 28px; }
 .raster > section + section { margin-top: 0; }
 .raster + section, .hinweis-platzhalter + .raster { margin-top: 28px; }
 .hinweis-platzhalter + .raster { margin-top: 0; }
+
+/* Hero mit Logo */
+.hero .container { display: flex; align-items: center; gap: 16px; }
+.hero .hero-text { flex: 1; min-width: 0; }
+.hero-logo { flex: none; width: 92px; background: var(--weiss); border-radius: 18px; padding: 10px 14px; box-shadow: 0 6px 20px rgba(0,0,0,.25); }
+.hero-logo img { width: 100%; height: auto; }
+@media (min-width: 640px) { .hero-logo { width: 130px; } }
+
+/* fussball.de-Daten */
+.status { flex: none; font-size: .8rem; font-weight: 700; color: var(--text-leise); background: #eef1ef; padding: 4px 8px; border-radius: 6px; }
+.zeile.abgesagt .info strong { text-decoration: line-through; color: var(--text-leise); }
+.zeile .info a { color: inherit; text-decoration: none; }
+.zeile .info a:hover { text-decoration: underline; }
+.spielort { display: flex; gap: 8px; align-items: flex-start; justify-content: center; text-align: left; color: var(--text-leise); font-size: .9rem; margin: 10px 0 0; }
+.spielort svg { width: 18px; height: 18px; flex: none; margin-top: 2px; color: var(--gruen); }
+.bilanz-hinweis { grid-column: 1 / -1; margin: 10px 0 0; font-size: .8rem; color: var(--text-leise); text-align: center; }
