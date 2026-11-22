@@ -1,20 +1,17 @@
 {
   "fussballde_team_id": "02IJJ01AA0000000VS5489B1VSO9MMK0",
+  "google_tabelle": "",
   "kontakt": {
-    "ansprechpartner": "PLATZHALTER Vorname Nachname",
-    "funktion": "Abteilungsleiter Fußball",
-    "email": "PLATZHALTER@beispiel.de",
-    "telefon": "PLATZHALTER 0123 456789",
-    "vereinsadresse": "PLATZHALTER Straße 1, 39307 Genthin",
-    "sportplatz": "PLATZHALTER Sportplatz, Straße 1, 39307 Genthin",
+    "ansprechpartner": "Peer Hildebrandt",
+    "funktion": "Trainer",
+    "email": "",
+    "telefon": "01520 2485019",
+    "vereinsadresse": "Berliner Chaussee 20, 39307 Genthin",
+    "sportplatz": "Berliner Chaussee 20, 39307 Genthin",
     "training": [
       {
-        "tag": "Dienstag",
-        "zeit": "PLATZHALTER 18:30 – 20:00 Uhr"
-      },
-      {
-        "tag": "Donnerstag",
-        "zeit": "PLATZHALTER 18:30 – 20:00 Uhr"
+        "tag": "Mittwoch",
+        "zeit": "19:00 – 21:00 Uhr"
       }
     ],
     "instagram": "",
@@ -23,13 +20,8 @@
   },
   "trainer": [
     {
-      "name": "PLATZHALTER Trainer",
-      "rolle": "Cheftrainer",
-      "foto": ""
-    },
-    {
-      "name": "PLATZHALTER Co-Trainer",
-      "rolle": "Co-Trainer",
+      "name": "Peer Hildebrandt",
+      "rolle": "Trainer",
       "foto": ""
     }
   ],

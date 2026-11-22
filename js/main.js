@@ -89,6 +89,133 @@
       });
   }
 
+  /* ---------- Google-Tabelle (Mannschaft & Fotos vom Handy pflegen) ----------
+     In daten/verein.json steht bei "google_tabelle" der Link zur Tabelle.
+     Reiter: "Spieler" (Nummer, Name, Position, Foto), "Trainer" (Name, Rolle, Foto),
+     "Fotos" (Datum, Gegner, Link). Die Tabelle muss für "Jeder mit dem Link" lesbar sein. */
+  var vereinCache = null;
+  function ladeVereinRoh() {
+    if (!vereinCache) vereinCache = ladeJson("daten/verein.json");
+    return vereinCache;
+  }
+  function tabellenId(wert) {
+    wert = String(wert || "").trim();
+    var m = /\/d\/([a-zA-Z0-9_-]{20,})/.exec(wert);
+    if (m) return m[1];
+    return /^[a-zA-Z0-9_-]{20,}$/.test(wert) ? wert : "";
+  }
+  function parseCsv(text) {
+    var zeilen = [], zeile = [], feld = "", inQ = false;
+    for (var i = 0; i < text.length; i++) {
+      var c = text[i];
+      if (inQ) {
+        if (c === '"') { if (text[i + 1] === '"') { feld += '"'; i++; } else inQ = false; }
+        else feld += c;
+      } else if (c === '"') inQ = true;
+      else if (c === ",") { zeile.push(feld); feld = ""; }
+      else if (c === "\n" || c === "\r") {
+        if (c === "\r" && text[i + 1] === "\n") i++;
+        zeile.push(feld); zeilen.push(zeile); zeile = []; feld = "";
+      } else feld += c;
+    }
+    if (feld || zeile.length) { zeile.push(feld); zeilen.push(zeile); }
+    return zeilen;
+  }
+  var SPALTEN = {
+    nummer: ["nummer", "nr", "nr.", "rückennummer", "trikotnummer"],
+    name: ["name", "vorname nachname", "spieler", "trainer"],
+    position: ["position", "pos"],
+    foto: ["foto", "bild", "foto-link", "fotolink"],
+    rolle: ["rolle", "funktion", "aufgabe"],
+    datum: ["datum", "spieltag", "spieldatum"],
+    gegner: ["gegner"],
+    link: ["link", "fotos", "drive-link", "drivelink", "ordner", "ordner-link", "google drive"]
+  };
+  // Liest einen Reiter der Google-Tabelle als Liste von Objekten
+  function ladeReiter(id, reiter, pflicht) {
+    var url = "https://docs.google.com/spreadsheets/d/" + id + "/gviz/tq?tqx=out:csv&headers=1&sheet=" + encodeURIComponent(reiter) + "&t=" + Date.now();
+    return fetch(url, { cache: "no-store" }).then(function (a) {
+      if (!a.ok) throw new Error("Google-Tabelle nicht erreichbar (" + a.status + ")");
+      return a.text();
+    }).then(function (text) {
+      var z = parseCsv(text);
+      if (!z.length) return [];
+      var kopf = z[0].map(function (h) { return h.trim().toLowerCase(); });
+      var index = {};
+      Object.keys(SPALTEN).forEach(function (k) {
+        for (var i = 0; i < kopf.length; i++) if (SPALTEN[k].indexOf(kopf[i]) >= 0) { index[k] = i; return; }
+      });
+      // Fehlt ein Reiter, liefert Google den ersten – dann passen die Spalten nicht.
+      if (pflicht.some(function (k) { return index[k] == null; })) throw new Error("Reiter „" + reiter + "“ fehlt oder hat andere Spaltennamen");
+      return z.slice(1).map(function (r) {
+        var o = {};
+        Object.keys(index).forEach(function (k) { o[k] = String(r[index[k]] || "").trim(); });
+        return o;
+      });
+    });
+  }
+  // Verein laden – Spieler und Trainer kommen aus der Google-Tabelle, falls eingetragen
+  function ladeVerein() {
+    return ladeVereinRoh().then(function (daten) {
+      var id = tabellenId(daten.google_tabelle);
+      if (!id) return daten;
+      return Promise.all([
+        ladeReiter(id, "Spieler", ["name"]),
+        ladeReiter(id, "Trainer", ["name"]).catch(function () { return null; })
+      ]).then(function (r) {
+        var kopie = Object.assign({}, daten);
+        kopie.spieler = r[0].filter(function (p) { return p.name; });
+        if (r[1]) kopie.trainer = r[1].filter(function (p) { return p.name; });
+        return kopie;
+      }).catch(function (e) {
+        console.warn("Google-Tabelle:", e);
+        return daten;
+      });
+    });
+  }
+  function datumAusTabelle(wert) {
+    wert = String(wert || "").trim();
+    var m = /^(\d{4})-(\d{1,2})-(\d{1,2})/.exec(wert);
+    if (m) return m[1] + "-" + m[2].padStart(2, "0") + "-" + m[3].padStart(2, "0");
+    m = /^(\d{1,2})[./](\d{1,2})[./](\d{2,4})/.exec(wert);
+    if (m) return (m[3].length === 2 ? "20" + m[3] : m[3]) + "-" + m[2].padStart(2, "0") + "-" + m[1].padStart(2, "0");
+    return "";
+  }
+  // Spiele laden – Foto-Links aus dem Reiter "Fotos" der Google-Tabelle werden dazugemischt
+  function ladeSpiele() {
+    return Promise.all([ladeJson("daten/spiele.json"), ladeVereinRoh().catch(function () { return {}; })]).then(function (r) {
+      var daten = r[0], id = tabellenId(r[1].google_tabelle);
+      if (!id || !daten || !Array.isArray(daten.spiele)) return daten;
+      return ladeReiter(id, "Fotos", ["datum", "link"]).then(function (fotos) {
+        fotos.forEach(function (f) {
+          var tag = datumAusTabelle(f.datum);
+          if (!tag || !/^https?:\/\//i.test(f.link)) return;
+          var amTag = daten.spiele.filter(function (s) { return s.datum === tag; });
+          var g = (f.gegner || "").toLowerCase();
+          var treffer = (g && amTag.filter(function (s) { return String(s.gegner || "").toLowerCase().indexOf(g) >= 0; })[0]) || amTag[0];
+          if (treffer) treffer.fotos = f.link;
+        });
+        return daten;
+      }).catch(function (e) {
+        console.warn("Google-Tabelle (Fotos):", e);
+        return daten;
+      });
+    });
+  }
+  // Google-Drive-Links in einbettbare Adressen umwandeln
+  function driveDateiId(url) {
+    var m = /drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?(?:export=\w+&)?id=)([a-zA-Z0-9_-]{10,})/.exec(String(url || ""));
+    return m ? m[1] : "";
+  }
+  function driveOrdnerId(url) {
+    var m = /drive\.google\.com\/drive\/(?:u\/\d+\/)?folders\/([a-zA-Z0-9_-]{10,})/.exec(String(url || ""));
+    return m ? m[1] : "";
+  }
+  function bildAdresse(pfad) {
+    var id = driveDateiId(pfad);
+    return id ? "https://drive.google.com/thumbnail?id=" + id + "&sz=w600" : String(pfad || "").trim();
+  }
+
   function zeigeFehler(ziel, fehler) {
     if (!ziel) return;
     var meldung = fehler && fehler.message ? fehler.message : String(fehler);
@@ -233,10 +360,25 @@
       '<p class="bilanz-hinweis">' + g.length + " Ligaspiele · Freundschafts- und Pokalspiele nicht mitgezählt</p>";
   }
 
+  /* Spielort: auswärts die Adresse von fussball.de, daheim unsere Vereinsadresse.
+     (Liegt ein Heimspiel laut fussball.de in einem anderen Ort, z. B. ein Turnier, gilt fussball.de.) */
+  function spielort(s, verein) {
+    var k = (verein && verein.kontakt) || {};
+    var unsere = !istPlatzhalter(k.sportplatz) && k.sportplatz ? k.sportplatz : (!istPlatzhalter(k.vereinsadresse) ? k.vereinsadresse || "" : "");
+    var teile = s.ort ? s.ort.split(",").map(function (x) { return x.trim(); }) : [];
+    // fussball.de: "Platzart, Sportstätte, Straße, PLZ Ort"
+    var fd = teile.length >= 3 ? { platz: teile.slice(0, teile.length - 2).join(", "), adresse: teile.slice(-2).join(", ") } : { platz: "", adresse: s.ort };
+    if (s.heim && unsere && (!s.ort || /genthin/i.test(teile[teile.length - 1] || ""))) {
+      return { platz: "Heimspiel – " + (fd.platz || "Stadion Genthin"), adresse: unsere };
+    }
+    return fd;
+  }
+
   /* ---------- Seiten ---------- */
   function seiteStart() {
     var ziel = document.getElementById("inhalt");
-    ladeJson("daten/spiele.json").then(function (daten) {
+    Promise.all([ladeSpiele(), ladeVereinRoh().catch(function () { return {}; })]).then(function (r) {
+      var daten = r[0], verein = r[1];
       var v = bereiteSpieleVor(daten);
       var naechstes = kommend(v.spiele)[0];
       var g = gespielt(v.spiele);
@@ -247,10 +389,11 @@
       html += '<section class="karte"><p class="etikett">Nächstes Spiel</p>';
       if (naechstes) {
         html += spielKopf(naechstes) + paarung(naechstes, false) + '<p class="countdown">' + countdown(naechstes) + "</p>";
-        if (naechstes.ort) {
-          html += '<p class="spielort">' + icon("ort") + "<span>" + esc(naechstes.ort) + "</span></p>" +
+        var ort = spielort(naechstes, verein);
+        if (ort.adresse) {
+          html += '<p class="spielort">' + icon("ort") + "<span>" + (ort.platz ? "<strong>" + esc(ort.platz) + "</strong><br>" : "") + esc(ort.adresse) + "</span></p>" +
             '<div class="buttons"><a class="button zweit" href="https://www.google.com/maps/search/?api=1&amp;query=' +
-            encodeURIComponent(naechstes.ort.split(",").slice(1).join(",") || naechstes.ort) + '" target="_blank" rel="noopener">' + icon("ort") + "Route zum Spielort</a></div>";
+            encodeURIComponent(ort.adresse) + '" target="_blank" rel="noopener">' + icon("ort") + "Route zum Spielort</a></div>";
         }
       } else {
         html += '<p class="leer">Aktuell ist kein Spiel angesetzt.</p>';
@@ -285,7 +428,7 @@
 
   function seiteSpielplan() {
     var ziel = document.getElementById("inhalt");
-    ladeJson("daten/spiele.json").then(function (daten) {
+    ladeSpiele().then(function (daten) {
       var v = bereiteSpieleVor(daten);
       var offen = kommend(v.spiele);
       var heute0 = new Date(); heute0.setHours(0, 0, 0, 0);
@@ -316,17 +459,19 @@
 
   function seiteGalerie() {
     var ziel = document.getElementById("inhalt");
-    ladeJson("daten/spiele.json").then(function (daten) {
+    ladeSpiele().then(function (daten) {
       var v = bereiteSpieleVor(daten);
-      var liste = gespielt(v.spiele).reverse();
+      var liste = v.spiele.filter(function (s) { return s.tore || sichererLink(s.fotos); }).reverse();
       if (!liste.length) {
         ziel.innerHTML = problemHinweis(v.probleme) + '<div class="karte"><p class="leer">Noch keine Spiele mit Fotos.</p></div>';
         return;
       }
       ziel.innerHTML = problemHinweis(v.probleme) + '<div class="raster raster-3">' + liste.map(function (s) {
         var button;
+        var ordner = driveOrdnerId(s.fotos);
         if (sichererLink(s.fotos)) {
-          button = '<a class="button" href="' + esc(s.fotos) + '" target="_blank" rel="noopener">' + icon("download") + "Fotos ansehen &amp; herunterladen</a>";
+          button = (ordner ? '<button type="button" class="button zweit fotos-zeigen" data-ordner="' + esc(ordner) + '">' + icon("galerie") + "Fotos hier anzeigen</button>" : "") +
+            '<a class="button" href="' + esc(s.fotos) + '" target="_blank" rel="noopener">' + icon("download") + "Fotos ansehen &amp; herunterladen</a>";
         } else if (istPlatzhalter(s.fotos)) {
           button = '<span class="button platzhalter" aria-disabled="true">Drive-Link fehlt (PLATZHALTER)</span>';
         } else {
@@ -334,7 +479,20 @@
         }
         return '<article class="karte galerie-karte"><div class="oben">' + spielKopf(s) + paarung(s, true) + "</div>" +
           '<div class="unten">' + button + "</div></article>";
-      }).join("") + "</div>";
+      }).join("") + "</div>" +
+        '<p class="bilanz-hinweis">Tipp: In Google Drive oben rechts auf <strong>⋮ → Alle herunterladen</strong> tippen, um alle Fotos eines Spiels auf einmal zu speichern.</p>';
+      // Fotos direkt in der Karte einblenden (Google-Drive-Ordneransicht)
+      ziel.querySelectorAll(".fotos-zeigen").forEach(function (b) {
+        b.addEventListener("click", function () {
+          var rahmen = document.createElement("iframe");
+          rahmen.className = "drive-ordner";
+          rahmen.title = "Fotos vom Spiel";
+          rahmen.loading = "lazy";
+          rahmen.src = "https://drive.google.com/embeddedfolderview?id=" + encodeURIComponent(b.getAttribute("data-ordner")) + "#grid";
+          b.parentNode.insertBefore(rahmen, b);
+          b.remove();
+        });
+      });
     }).catch(function (e) { zeigeFehler(ziel, e); });
   }
 
@@ -345,7 +503,7 @@
 
   function personKarte(p, unterzeile, nummer) {
     var bild = sichererBild(p.foto)
-      ? '<img src="' + esc(p.foto) + '" alt="' + esc(p.name) + '" loading="lazy">'
+      ? '<img src="' + esc(bildAdresse(p.foto)) + '" referrerpolicy="no-referrer" alt="' + esc(p.name) + '" loading="lazy">'
       : "<span>" + esc(initialen(p.name)) + "</span>";
     return '<div class="karte spieler"><div class="bild">' + bild +
       (nummer != null && nummer !== "" ? '<span class="nummer">' + esc(nummer) + "</span>" : "") +
@@ -358,7 +516,7 @@
 
   function seiteMannschaft() {
     var ziel = document.getElementById("inhalt");
-    ladeJson("daten/verein.json").then(function (daten) {
+    ladeVerein().then(function (daten) {
       var spieler = Array.isArray(daten.spieler) ? daten.spieler : [];
       var trainer = Array.isArray(daten.trainer) ? daten.trainer : [];
       var reihenfolge = ["Tor", "Abwehr", "Mittelfeld", "Sturm"];
@@ -387,7 +545,7 @@
 
   function seiteKontakt() {
     var ziel = document.getElementById("inhalt");
-    ladeJson("daten/verein.json").then(function (daten) {
+    ladeVereinRoh().then(function (daten) {
       var k = daten.kontakt || {};
       var zeilen = [];
       if (k.ansprechpartner) zeilen.push(["person", k.funktion || "Ansprechpartner", t(k.ansprechpartner)]);

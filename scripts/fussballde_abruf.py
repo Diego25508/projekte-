@@ -63,6 +63,19 @@ def entschluessele(span):
     return "".join(ZIFFERN.get(cmap.get(ord(z), ""), "") for z in text)
 
 
+def ort_von_spielseite(link):
+    """Liest den Spielort von der Detailseite eines Spiels (falls er im Spielplan fehlt)."""
+    if not link:
+        return ""
+    try:
+        soup = BeautifulSoup(laden(link), "html.parser")
+    except Exception as e:  # noqa: BLE001
+        print(f"Spielort für {link} nicht ladbar: {e}", file=sys.stderr)
+        return ""
+    a = soup.select_one("a.location")
+    return re.sub(r"\s+", " ", a.get_text(" ", strip=True)) if a else ""
+
+
 def saison_zeitraum(heute):
     start = heute.year if heute.month >= 7 else heute.year - 1
     return date(start, 7, 1), date(start + 1, 6, 30), f"{start}/{str(start + 1)[-2:]}"
@@ -161,14 +174,21 @@ def main():
     alt = json.loads(SPIELE.read_text(encoding="utf-8")) if SPIELE.exists() else {}
     alte_spiele = alt.get("spiele", [])
     fotos = {s["id"]: s.get("fotos", "") for s in alte_spiele if s.get("id") and s.get("fotos")}
+    alte_orte = {s["id"]: s.get("ort", "") for s in alte_spiele if s.get("id") and s.get("ort")}
     manuell = [s for s in alte_spiele if s.get("manuell")]
 
     saison, neu = abrufen(team_id)
     if not neu:
         sys.exit("Keine Spiele von fussball.de erhalten – spiele.json bleibt unverändert.")
 
+    heute = date.today().isoformat()
     for s in neu:
         s["fotos"] = fotos.get(s["id"], "")
+        # Spielort fehlt im Spielplan? Dann von der Spielseite holen (nur kommende Spiele).
+        if not s["ort"] and not s["status"]:
+            s["ort"] = alte_orte.get(s["id"], "")
+            if not s["ort"] and s["datum"] >= heute:
+                s["ort"] = ort_von_spielseite(s["link"])
     alle = sorted(neu + manuell, key=lambda s: (s.get("datum", ""), s.get("uhrzeit", "")))
 
     ausgabe = {
