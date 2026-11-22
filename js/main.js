@@ -42,7 +42,7 @@
     kopf.className = "kopf";
     kopf.innerHTML =
       '<div class="container">' +
-      '<a class="marke" href="index.html"><img src="bilder/wappen.svg" alt="" width="36" height="42"><span><strong>' + VEREIN + "</strong><small>Herren · Kreisliga</small></span></a>" +
+      '<a class="marke" href="index.html"><span class="logo-schild"><img src="bilder/logo.png" alt="Vereinslogo Fortuna 89" width="27" height="40"></span><span><strong>' + VEREIN + "</strong><small>Herren · Kreisliga</small></span></a>" +
       '<nav class="nav" aria-label="Hauptmenü">' + nav + "</nav>" +
       "</div>";
     document.body.insertBefore(kopf, document.body.firstChild);
@@ -50,6 +50,7 @@
     var fuss = document.createElement("footer");
     fuss.className = "fuss";
     fuss.innerHTML = '<div class="container"><p><strong>' + VEREIN + "</strong> · Grün-Weiß seit jeher</p>" +
+      '<p>Spielplan &amp; Ergebnisse: <a href="https://www.fussball.de" target="_blank" rel="noopener">fussball.de</a></p>' +
       '<p><a href="kontakt.html">Kontakt</a> · <a href="impressum.html">Impressum &amp; Datenschutz</a></p></div>';
     document.body.appendChild(fuss);
   }
@@ -123,7 +124,7 @@
 
       var tore = null;
       var erg = String(roh.ergebnis || "").trim();
-      if (erg) {
+      if (erg && !roh.status) {
         var e = /^(\d+)\s*[:\-]\s*(\d+)$/.exec(erg);
         if (e) tore = { wir: +e[1], die: +e[2] };
         else probleme.push("Spiel Nr. " + nr + " (" + esc(roh.gegner) + "): Ergebnis „" + esc(erg) + "“ bitte so schreiben: 2:1 (zuerst unsere Tore).");
@@ -142,7 +143,11 @@
         wettbewerb: roh.wettbewerb || "",
         tore: tore,
         ausgang: ausgang,
-        fotos: String(roh.fotos || "").trim()
+        fotos: String(roh.fotos || "").trim(),
+        status: String(roh.status || "").trim(),
+        liga: roh.typ ? roh.typ === "ME" : /liga/i.test(roh.wettbewerb || ""),
+        ort: String(roh.ort || "").trim(),
+        link: String(roh.link || "").trim()
       });
     });
 
@@ -153,7 +158,11 @@
   function gespielt(spiele) { return spiele.filter(function (s) { return s.tore; }); }
   function kommend(spiele) {
     var heute = new Date(); heute.setHours(0, 0, 0, 0);
-    return spiele.filter(function (s) { return !s.tore && s.datum >= heute; });
+    return spiele.filter(function (s) { return !s.tore && !s.status && s.datum >= heute; });
+  }
+  function istAbgesagt(s) { return !!s.status; }
+  function statusText(s) {
+    return /absetz/i.test(s.status) ? "abgesagt" : s.status;
   }
 
   function heimGast(s) {
@@ -198,26 +207,30 @@
   }
 
   function zeileHtml(s) {
-    var rechts = s.tore
+    var rechts = istAbgesagt(s)
+      ? '<span class="status">' + esc(statusText(s)) + "</span>"
+      : s.tore
       ? '<span class="resultat"><span class="text-' + s.ausgang + '">' + standText(s) + '</span><span class="marker ' + s.ausgang + '" title="' + AUSGANG[s.ausgang] + '">' + MARKER[s.ausgang] + "</span></span>"
-      : '<span class="uhr">' + (s.hatUhrzeit ? s.uhrzeit : "–") + "</span>";
+      : (s.datum < new Date() ? '<span class="status">Ergebnis folgt</span>' : '<span class="uhr">' + (s.hatUhrzeit ? s.uhrzeit : "–") + "</span>");
     var gegnerZeile = (s.heim ? VEREIN_KURZ + " – " + t(s.gegner) : t(s.gegner) + " – " + VEREIN_KURZ);
-    return '<li class="zeile">' +
+    var stark = sichererLink(s.link) ? '<a href="' + esc(s.link) + '" target="_blank" rel="noopener">' + gegnerZeile + "</a>" : gegnerZeile;
+    return '<li class="zeile' + (istAbgesagt(s) ? " abgesagt" : "") + '">' +
       '<span class="datum"><b>' + s.datum.getDate() + "</b><small>" + MONAT[s.datum.getMonth()] + "</small></span>" +
-      '<span class="info"><strong>' + gegnerZeile + "</strong><small>" + WOCHENTAG[s.datum.getDay()] + " · " +
+      '<span class="info"><strong>' + stark + "</strong><small>" + WOCHENTAG[s.datum.getDay()] + " · " +
       (s.heim ? "Heim" : "Auswärts") + (s.wettbewerb ? " · " + t(s.wettbewerb) : "") + "</small></span>" +
       rechts + "</li>";
   }
 
   function bilanzHtml(spiele) {
-    var g = gespielt(spiele);
+    var g = gespielt(spiele).filter(function (s) { return s.liga; });
     var z = { s: 0, u: 0, n: 0, tw: 0, td: 0 };
     g.forEach(function (s) { z[s.ausgang]++; z.tw += s.tore.wir; z.td += s.tore.die; });
     return '<div class="bilanz">' +
       "<div><b>" + z.s + "</b><span>Siege</span></div>" +
       "<div><b>" + z.u + "</b><span>Remis</span></div>" +
       "<div><b>" + z.n + "</b><span>Niederl.</span></div>" +
-      "<div><b>" + z.tw + ":" + z.td + "</b><span>Tore</span></div></div>";
+      "<div><b>" + z.tw + ":" + z.td + "</b><span>Tore</span></div></div>" +
+      '<p class="bilanz-hinweis">' + g.length + " Ligaspiele · Freundschafts- und Pokalspiele nicht mitgezählt</p>";
   }
 
   /* ---------- Seiten ---------- */
@@ -234,6 +247,11 @@
       html += '<section class="karte"><p class="etikett">Nächstes Spiel</p>';
       if (naechstes) {
         html += spielKopf(naechstes) + paarung(naechstes, false) + '<p class="countdown">' + countdown(naechstes) + "</p>";
+        if (naechstes.ort) {
+          html += '<p class="spielort">' + icon("ort") + "<span>" + esc(naechstes.ort) + "</span></p>" +
+            '<div class="buttons"><a class="button zweit" href="https://www.google.com/maps/search/?api=1&amp;query=' +
+            encodeURIComponent(naechstes.ort.split(",").slice(1).join(",") || naechstes.ort) + '" target="_blank" rel="noopener">' + icon("ort") + "Route zum Spielort</a></div>";
+        }
       } else {
         html += '<p class="leer">Aktuell ist kein Spiel angesetzt.</p>';
       }
@@ -243,15 +261,16 @@
       if (letztes) {
         html += spielKopf(letztes) + paarung(letztes, true) +
           '<p class="ergebnis-hinweis text-' + letztes.ausgang + '">' + AUSGANG[letztes.ausgang] + "</p>";
-        if (sichererLink(letztes.fotos)) {
-          html += '<div class="buttons"><a class="button zweit" href="' + esc(letztes.fotos) + '" target="_blank" rel="noopener">' + icon("galerie") + "Fotos vom Spiel</a></div>";
-        }
+        var knoepfe = "";
+        if (sichererLink(letztes.fotos)) knoepfe += '<a class="button" href="' + esc(letztes.fotos) + '" target="_blank" rel="noopener">' + icon("galerie") + "Fotos vom Spiel</a>";
+        if (sichererLink(letztes.link)) knoepfe += '<a class="button zweit" href="' + esc(letztes.link) + '" target="_blank" rel="noopener">' + icon("link") + "Spiel auf fussball.de</a>";
+        if (knoepfe) html += '<div class="buttons">' + knoepfe + "</div>";
       } else {
         html += '<p class="leer">Noch keine Ergebnisse in dieser Saison.</p>';
       }
       html += "</section></div>";
 
-      html += '<section><div class="abschnitt-kopf"><h2>Saisonbilanz' + (v.saison ? " " + esc(v.saison) : "") + '</h2><a href="spielplan.html">Alle Spiele →</a></div>' +
+      html += '<section><div class="abschnitt-kopf"><h2>Kreisliga ' + (v.saison ? esc(v.saison) : "") + '</h2><a href="spielplan.html">Alle Spiele →</a></div>' +
         '<div class="karte">' + bilanzHtml(v.spiele) + "</div></section>";
 
       var weitere = kommend(v.spiele).slice(1, 4);
@@ -269,7 +288,8 @@
     ladeJson("daten/spiele.json").then(function (daten) {
       var v = bereiteSpieleVor(daten);
       var offen = kommend(v.spiele);
-      var fertig = gespielt(v.spiele).reverse();
+      var heute0 = new Date(); heute0.setHours(0, 0, 0, 0);
+      var fertig = v.spiele.filter(function (s) { return s.tore || s.datum < heute0; }).reverse();
 
       ziel.innerHTML = problemHinweis(v.probleme) +
         '<div class="karte" style="margin-bottom:14px">' + bilanzHtml(v.spiele) + "</div>" +

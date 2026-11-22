@@ -6,42 +6,55 @@ Webseite der Herrenmannschaft (Kreisliga). Reines HTML, CSS und JavaScript – l
 
 | Datei | Inhalt |
 |---|---|
-| `daten/spiele.json` | Alle Spiele, Ergebnisse und Google-Drive-Links für die Galerie |
+| `daten/spiele.json` | Spiele & Ergebnisse (automatisch von fussball.de) + Google-Drive-Links |
 | `daten/verein.json` | Spieler, Trainer, Kontaktdaten, Trainingszeiten, Social-Media-Links |
 | `impressum.html` | Impressum (Pflichtangaben) |
-| `bilder/wappen.svg` | Vereinswappen (derzeit Platzhalter) |
+| `bilder/logo.png` | Vereinslogo (Tab-Symbole: `favicon-48.png`, `apple-touch-icon.png`) |
 
 Alles, was **PLATZHALTER** enthält, wird auf der Seite gelb gestrichelt markiert, bis es ersetzt ist.
 
-## Neues Spiel eintragen (vom Handy)
+## Spiele kommen automatisch von fussball.de
 
-1. Auf github.com das Repository öffnen → Ordner `daten` → `spiele.json`.
-2. Auf das **Stift-Symbol** (Bearbeiten) tippen.
-3. Den letzten Spiel-Block kopieren und **vor** der Zeile `  ]` einfügen. Wichtig: zwischen zwei Blöcken steht ein Komma `},` – nach dem allerletzten Block **kein** Komma.
+Die GitHub Action `.github/workflows/webseite.yml` holt Spielplan und Ergebnisse der Herren
+(Team-ID `fussballde_team_id` in `daten/verein.json`) und schreibt sie in `daten/spiele.json`:
+
+- am Spielwochenende (Sa/So) stündlich, sonst zweimal täglich,
+- bei jeder Änderung an `main`,
+- sofort per Hand: **Actions → „Spiele aktualisieren & Webseite veröffentlichen“ → Run workflow**.
+
+Nur das Feld `fotos` trägst du selbst ein – es bleibt bei jedem Abruf erhalten.
+Alle anderen Felder überschreibt der Abruf.
+
+## Foto-Link zu einem Spiel eintragen (vom Handy)
+
+1. Auf github.com: `daten/spiele.json` öffnen → **Stift-Symbol**.
+2. Das Spiel suchen (Datum + Gegner) und den Drive-Link zwischen die Anführungszeichen bei `"fotos": ""` setzen:
+   `"fotos": "https://drive.google.com/drive/folders/..."`
+3. **Commit changes** – nach ca. 2 Minuten ist der Button in der Galerie aktiv.
+
+Ein Spiel, das nicht auf fussball.de steht, kannst du von Hand ergänzen. Mit `"manuell": true`
+wird es vom Abruf nie verändert:
 
 ```json
     {
-      "datum": "2026-12-13",
-      "uhrzeit": "14:00",
+      "manuell": true,
+      "datum": "2027-07-10",
+      "uhrzeit": "15:00",
       "gegner": "Name des Gegners",
       "heim": true,
-      "wettbewerb": "Kreisliga",
+      "wettbewerb": "Freundschaftsspiel",
       "ergebnis": "",
       "fotos": ""
-    }
+    },
 ```
 
-| Feld | Bedeutung |
-|---|---|
-| `datum` | Immer `JJJJ-MM-TT`, z. B. `2026-12-13` |
-| `uhrzeit` | z. B. `14:00` |
-| `heim` | `true` = Heimspiel, `false` = Auswärtsspiel (ohne Anführungszeichen) |
-| `ergebnis` | Leer lassen `""`, solange nicht gespielt. Danach **zuerst unsere Tore**: `"3:1"` = wir haben 3:1 gewonnen – auch bei Auswärtsspielen |
-| `fotos` | Link zum freigegebenen Google-Drive-Ordner, sonst `""` |
+`ergebnis`: zuerst unsere Tore, z. B. `"3:1"`.
 
-4. Unten auf **Commit changes** tippen. Nach 1–2 Minuten ist die Seite aktualisiert.
+## Neue Saison
 
-Ein gespieltes Spiel erscheint automatisch unter „Ergebnisse“ und in der Galerie. Bei einem Tippfehler zeigt die Seite einen Hinweis, was nicht stimmt.
+Die Team-ID bleibt bei fussball.de normalerweise gleich. Falls nach dem Saisonwechsel keine
+Spiele mehr kommen: Mannschaftsseite auf fussball.de öffnen, die Zeichenkette hinter
+`team-id/` in der Adresse kopieren und in `daten/verein.json` bei `fussballde_team_id` eintragen.
 
 ## Google-Drive-Ordner freigeben
 
