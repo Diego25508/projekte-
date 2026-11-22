@@ -67,13 +67,17 @@ Das Skript `vorlagen/fortuna-fotos-ordner.gs` legt für jedes Spiel der Saison i
 und trägt Datum, Gegner und Link im Reiter `Fotos` ein – danach täglich für neue Spiele.
 Dann müssen Helfer nur noch Fotos in den passenden Ordner hochladen.
 
+Es ist ein eigenständiges Apps-Script-Projekt und öffnet die Tabelle über ihre ID
+(`TABELLE_ID` oben im Skript).
+
 Einrichten (einmalig, am besten am Computer):
 
-1. Google-Tabelle öffnen → **Erweiterungen → Apps Script**.
-2. Den vorhandenen Text in `Code.gs` löschen, den Inhalt von `vorlagen/fortuna-fotos-ordner.gs` einfügen, **Speichern** (Diskettensymbol).
-3. Oben in der Auswahl die Funktion **`einrichten`** wählen → **Ausführen**.
-4. Berechtigungen bestätigen: **Berechtigungen prüfen** → eigenes Google-Konto → bei „Google hat diese App nicht überprüft“ auf **Erweitert → Zu „…“ wechseln (unsicher)** → **Zulassen**.
-5. Fertig – unten im Ausführungsprotokoll steht „Fertig“. Ab jetzt läuft es jeden Morgen automatisch (zu sehen unter dem Wecker-Symbol **Trigger**).
+1. **script.google.com** öffnen (mit dem Google-Konto, dem Tabelle und Ordner gehören) → **Neues Projekt**.
+2. Links oben auf „Unbenanntes Projekt“ tippen → Namen „Fortuna Foto-Ordner“ vergeben.
+3. Den vorhandenen Text in `Code.gs` löschen, den Inhalt von `vorlagen/fortuna-fotos-ordner.gs` einfügen, **Speichern** (Diskettensymbol).
+4. Oben in der Auswahl die Funktion **`einrichten`** wählen → **Ausführen**.
+5. Berechtigungen bestätigen: **Berechtigungen prüfen** → eigenes Google-Konto → bei „Google hat diese App nicht überprüft“ auf **Erweitert → Zu „Fortuna Foto-Ordner“ wechseln (unsicher)** → **Zulassen**.
+6. Fertig – unten im Ausführungsprotokoll steht „Fertig“. Ab jetzt läuft es jeden Morgen automatisch (zu sehen unter dem Wecker-Symbol **Trigger**). Per Hand starten: Funktion `ordnerAnlegen` → **Ausführen**.
 
 ### Einem Helfer Zugriff geben
 

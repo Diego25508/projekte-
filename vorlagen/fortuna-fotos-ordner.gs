@@ -1,7 +1,8 @@
 /**
  * SV Fortuna Genthin – Foto-Ordner automatisch anlegen
  * =====================================================
- * Google-Apps-Script für die Google-Tabelle „Fortuna Tabelle“.
+ * Eigenständiges Google-Apps-Script (script.google.com) – nicht an die Tabelle gebunden.
+ * Es öffnet die Google-Tabelle „Fortuna Tabelle“ über ihre ID (siehe TABELLE_ID).
  *
  * - liest alle Spiele der Saison von https://sv-fortuna-genthin.github.io/daten/spiele.json
  * - legt im Drive-Ordner „Fortuna Fotos“ je Spiel einen Unterordner an, z. B. „2026-11-29 Wörmlitzer SV 90“
@@ -14,6 +15,7 @@
  * und startet das Skript danach automatisch einmal täglich (nur neue Spiele).
  */
 
+var TABELLE_ID = "1xGZNilJi7OiQvPXLQw08KWU7BjYUEr0qP9SOl8Tt9FM";
 var SPIELE_URL = "https://sv-fortuna-genthin.github.io/daten/spiele.json";
 var ORDNER_NAME = "Fortuna Fotos";
 var REITER_NAME = "Fotos";
@@ -29,14 +31,6 @@ function einrichten() {
   Logger.log("Fertig. Ab jetzt läuft das Skript jeden Tag automatisch zwischen %s und %s Uhr.", STUNDE, STUNDE + 1);
 }
 
-/** Menü „Fortuna“ in der Tabelle (am Computer) zum Starten per Hand. */
-function onOpen() {
-  SpreadsheetApp.getUi().createMenu("Fortuna")
-    .addItem("Foto-Ordner jetzt anlegen", "ordnerAnlegen")
-    .addItem("Täglichen Start einrichten", "einrichten")
-    .addToUi();
-}
-
 /** Hauptfunktion: legt fehlende Ordner und Zeilen an. */
 function ordnerAnlegen() {
   var sperre = LockService.getScriptLock();
@@ -45,7 +39,7 @@ function ordnerAnlegen() {
     var spiele = spieleLaden_();
     var hauptordner = hauptordner_();
     var reiter = reiter_();
-    var tz = SpreadsheetApp.getActiveSpreadsheet().getSpreadsheetTimeZone();
+    var tz = tabelle_().getSpreadsheetTimeZone();
 
     // Vorhandene Zeilen lesen; Datum immer als Text "JJJJ-MM-TT" speichern,
     // damit die Webseite es sicher erkennt.
@@ -121,8 +115,12 @@ function teilen_(ordner) {
   }
 }
 
+function tabelle_() {
+  return SpreadsheetApp.openById(TABELLE_ID);
+}
+
 function reiter_() {
-  var tabelle = SpreadsheetApp.getActiveSpreadsheet();
+  var tabelle = tabelle_();
   var reiter = tabelle.getSheetByName(REITER_NAME);
   if (!reiter) {
     reiter = tabelle.insertSheet(REITER_NAME);
