@@ -60,6 +60,25 @@ Die Reiter (Namen und Spaltenüberschriften genau so):
 
 Die Fotos erscheinen in der Galerie beim passenden Spiel (direkt ansehbar und kostenlos herunterladbar).
 
+### Foto-Ordner automatisch anlegen lassen (Google-Apps-Script)
+
+Das Skript `vorlagen/fortuna-fotos-ordner.gs` legt für jedes Spiel der Saison im Ordner
+„Fortuna Fotos“ einen Unterordner an (z. B. `2026-11-29 Wörmlitzer SV 90`), gibt ihn frei
+und trägt Datum, Gegner und Link im Reiter `Fotos` ein – danach täglich für neue Spiele.
+Dann müssen Helfer nur noch Fotos in den passenden Ordner hochladen.
+
+Es ist ein eigenständiges Apps-Script-Projekt und öffnet die Tabelle über ihre ID
+(`TABELLE_ID` oben im Skript).
+
+Einrichten (einmalig, am besten am Computer):
+
+1. **script.google.com** öffnen (mit dem Google-Konto, dem Tabelle und Ordner gehören) → **Neues Projekt**.
+2. Links oben auf „Unbenanntes Projekt“ tippen → Namen „Fortuna Foto-Ordner“ vergeben.
+3. Den vorhandenen Text in `Code.gs` löschen, den Inhalt von `vorlagen/fortuna-fotos-ordner.gs` einfügen, **Speichern** (Diskettensymbol).
+4. Oben in der Auswahl die Funktion **`einrichten`** wählen → **Ausführen**.
+5. Berechtigungen bestätigen: **Berechtigungen prüfen** → eigenes Google-Konto → bei „Google hat diese App nicht überprüft“ auf **Erweitert → Zu „Fortuna Foto-Ordner“ wechseln (unsicher)** → **Zulassen**.
+6. Fertig – unten im Ausführungsprotokoll steht „Fertig“. Ab jetzt läuft es jeden Morgen automatisch (zu sehen unter dem Wecker-Symbol **Trigger**). Per Hand starten: Funktion `ordnerAnlegen` → **Ausführen**.
+
 ### Einem Helfer Zugriff geben
 
 - Ordner „Fortuna Fotos“ → **Teilen** → Google-Mail-Adresse des Helfers → Rolle **Bearbeiter** → Senden.
