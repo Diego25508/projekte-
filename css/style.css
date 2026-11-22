@@ -333,3 +333,9 @@ section + section { margin-top: 28px; }
 @media (min-width: 640px) {
   .teamfoto img { aspect-ratio: auto; height: min(52vh, 480px); }
 }
+
+/* Galerie: Fotos direkt anzeigen */
+.galerie-karte .unten { display: flex; flex-direction: column; gap: 8px; }
+.galerie-karte .unten .button { width: 100%; justify-content: center; }
+button.button { font: inherit; cursor: pointer; }
+.drive-ordner { width: 100%; height: 340px; border: 1px solid var(--rand, #dde5df); border-radius: 10px; background: #fff; }
