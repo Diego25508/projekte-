@@ -461,7 +461,9 @@
     var ziel = document.getElementById("inhalt");
     ladeSpiele().then(function (daten) {
       var v = bereiteSpieleVor(daten);
-      var liste = v.spiele.filter(function (s) { return s.tore || sichererLink(s.fotos); }).reverse();
+      // Gespielte Spiele – kommende Spiele haben schon einen (leeren) Ordner, werden aber erst nach dem Spiel gezeigt
+      var jetzt = new Date();
+      var liste = v.spiele.filter(function (s) { return s.tore || (sichererLink(s.fotos) && !istAbgesagt(s) && s.datum < jetzt); }).reverse();
       if (!liste.length) {
         ziel.innerHTML = problemHinweis(v.probleme) + '<div class="karte"><p class="leer">Noch keine Spiele mit Fotos.</p></div>';
         return;
